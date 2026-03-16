@@ -50,7 +50,7 @@ export class Fdbck {
 
     const headers: Record<string, string> = {
       Authorization: `Bearer ${this.apiKey}`,
-      'User-Agent': `@fdbck/node/${SDK_VERSION}`,
+      'User-Agent': `fdbck-node/${SDK_VERSION}`,
     };
 
     const fetchOptions: RequestInit & { signal?: AbortSignal } = {

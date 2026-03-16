@@ -55,7 +55,7 @@ describe('Fdbck.request', () => {
     await client.request('GET', '/v1/me');
 
     const [, options] = fetchMock.mock.calls[0];
-    expect(options.headers['User-Agent']).toMatch(/^@fdbck\/node\//);
+    expect(options.headers['User-Agent']).toMatch(/^fdbck-node\//);
   });
 
   it('uses custom base URL', async () => {
