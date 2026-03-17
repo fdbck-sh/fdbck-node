@@ -15,7 +15,7 @@ const question = await fdbck.questions.create({
   question: 'How was your first purchase?',
   type: 'rating',
   ratingConfig: { min: 1, max: 5 },
-  expiresIn: 172800,
+  expiresAt: new Date(Date.now() + 48 * 60 * 60 * 1000), // 48 hours
 });
 
 const token = await fdbck.tokens.create(question.id, {
@@ -66,7 +66,7 @@ const question = await fdbck.questions.create({
     minLabel: 'Terrible',
     maxLabel: 'Loved it',
   },
-  expiresIn: 86400, // 24 hours
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
 });
 ```
 
@@ -124,7 +124,7 @@ Get notified in real time instead of polling.
 const question = await fdbck.questions.create({
   question: 'How was your experience?',
   type: 'yes_no',
-  expiresIn: 86400,
+  expiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000), // 24 hours
   webhookUrl: 'https://myapp.com/hooks/fdbck',
   webhookTrigger: 'each_response', // or 'expiry', 'both'
 });
@@ -165,7 +165,7 @@ Creates a new question.
 | `type` | `QuestionType` | Yes | `yes_no`, `single_choice`, `multiple_choice`, or `rating` |
 | `options` | `string[]` | For choice types | 2–20 answer options |
 | `ratingConfig` | `RatingConfig` | For `rating` | `{ min, max, minLabel?, maxLabel? }` |
-| `expiresIn` or `expiresAt` | `number` or `string` | Yes (exactly one) | Seconds from now, or ISO 8601 timestamp |
+| `expiresAt` | `Date \| string` | Yes | Expiry timestamp — `Date` object or ISO 8601 string |
 | `maxResponses` | `number` | No | Auto-complete after N responses |
 | `webhookUrl` | `string` | No | HTTPS URL to receive events |
 | `webhookTrigger` | `WebhookTrigger` | No | `each_response`, `expiry`, or `both` |
@@ -173,6 +173,8 @@ Creates a new question.
 | `themeColor` | `string` | No | Hex color for response page |
 | `themeMode` | `'light' \| 'dark'` | No | Response page theme |
 | `hideBranding` | `boolean` | No | Hide "Powered by fdbck" (paid plans) |
+| `welcomeMessage` | `string` | No | Custom message shown before the question |
+| `thankYouMessage` | `string` | No | Custom message shown after submitting |
 
 #### `fdbck.questions.get(id)` → `Question`
 
@@ -251,10 +253,25 @@ Each `ResponseItem` contains:
 | Field | Type | Description |
 |-------|------|-------------|
 | `id` | `string` | Response ID |
-| `questionId` | `string` | Parent question ID |
 | `value` | `unknown` | The answer — `"Yes"`/`"No"` for yes_no, `"Option A"` for single_choice, `["A", "B"]` for multiple_choice, `4` for rating |
 | `respondent` | `string \| null` | The respondent identifier you passed when creating the token |
 | `createdAt` | `string` | ISO timestamp |
+
+#### `fdbck.questions.update(id, options)` → `Question`
+
+Updates a collecting question's webhook config or theming. Only provided fields are changed.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `webhookUrl` | `string` | HTTPS URL to receive events |
+| `webhookTrigger` | `WebhookTrigger` | `each_response`, `expiry`, or `both` |
+| `themeColor` | `string` | Hex color for response page (paid plans) |
+| `themeMode` | `'light' \| 'dark'` | Response page theme (paid plans) |
+| `hideBranding` | `boolean` | Hide "Powered by fdbck" (paid plans) |
+| `welcomeMessage` | `string` | Custom message before the question (paid plans) |
+| `thankYouMessage` | `string` | Custom message after submitting (paid plans) |
+
+All fields are optional but at least one must be provided.
 
 #### `fdbck.questions.cancel(id)` → `Question`
 

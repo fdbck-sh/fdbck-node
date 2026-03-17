@@ -10,6 +10,7 @@ export type {
   WebhookTrigger,
   RatingConfig,
   CreateQuestionOptions,
+  UpdateQuestionOptions,
   Question,
   ListQuestionsOptions,
   PaginatedList,

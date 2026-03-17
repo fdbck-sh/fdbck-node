@@ -34,16 +34,13 @@ describe('questions.create', () => {
 
   beforeEach(() => {
     originalFetch = globalThis.fetch;
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
   });
 
   afterEach(() => {
     globalThis.fetch = originalFetch;
-    vi.useRealTimers();
   });
 
-  it('converts expiresIn to expires_at in API body', async () => {
+  it('converts Date expiresAt to ISO string in API body', async () => {
     const fetchMock = mockFetch({ status: 200, body: apiQuestion });
     globalThis.fetch = fetchMock;
 
@@ -52,7 +49,7 @@ describe('questions.create', () => {
       question: 'How was it?',
       type: 'rating',
       ratingConfig: { min: 1, max: 5, minLabel: 'Bad', maxLabel: 'Good' },
-      expiresIn: 86400,
+      expiresAt: new Date('2026-01-02T00:00:00.000Z'),
     });
 
     const sentBody = JSON.parse(fetchMock.mock.calls[0][1].body);
@@ -63,7 +60,6 @@ describe('questions.create', () => {
       min_label: 'Bad',
       max_label: 'Good',
     });
-    expect(sentBody.expiresIn).toBeUndefined();
   });
 
   it('maps API response to camelCase', async () => {
@@ -87,23 +83,19 @@ describe('questions.create', () => {
     expect(q.createdAt).toBe('2026-01-01T00:00:00.000Z');
   });
 
-  it('throws when both expiresIn and expiresAt are provided', async () => {
-    const client = new Fdbck('sk_fdbck_test');
-    await expect(
-      client.questions.create({
-        question: 'test',
-        type: 'yes_no',
-        expiresIn: 3600,
-        expiresAt: '2026-01-02T00:00:00.000Z',
-      }),
-    ).rejects.toThrow('either expiresIn or expiresAt');
-  });
+  it('passes string expiresAt through unchanged', async () => {
+    const fetchMock = mockFetch({ status: 200, body: apiQuestion });
+    globalThis.fetch = fetchMock;
 
-  it('throws when neither expiresIn nor expiresAt is provided', async () => {
     const client = new Fdbck('sk_fdbck_test');
-    await expect(
-      client.questions.create({ question: 'test', type: 'yes_no' }),
-    ).rejects.toThrow('Either expiresIn or expiresAt is required');
+    await client.questions.create({
+      question: 'How was it?',
+      type: 'yes_no',
+      expiresAt: '2026-01-02T00:00:00.000Z',
+    });
+
+    const sentBody = JSON.parse(fetchMock.mock.calls[0][1].body);
+    expect(sentBody.expires_at).toBe('2026-01-02T00:00:00.000Z');
   });
 });
 
@@ -197,7 +189,6 @@ describe('questions.results', () => {
         data: [
           {
             id: 'r_1',
-            question_id: 'q_123',
             value: 4,
             respondent: 'user_1',
             created_at: '2026-01-01T06:00:00.000Z',
@@ -210,7 +201,6 @@ describe('questions.results', () => {
     const client = new Fdbck('sk_fdbck_test');
     const result = await client.questions.results('q_123');
 
-    expect(result.data[0].questionId).toBe('q_123');
     expect(result.data[0].createdAt).toBe('2026-01-01T06:00:00.000Z');
     expect(result.pagination.hasMore).toBe(false);
   });

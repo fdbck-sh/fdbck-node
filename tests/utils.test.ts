@@ -1,11 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { describe, it, expect } from 'vitest';
 import {
   mapKeys,
-  computeExpiresAt,
   questionFieldsToApi,
   questionFieldsFromApi,
   ratingConfigFieldsToApi,
-  ratingConfigFieldsFromApi,
 } from '../src/utils.js';
 
 describe('mapKeys', () => {
@@ -30,32 +28,8 @@ describe('mapKeys', () => {
     expect(sdk).toEqual({ maxResponses: 10, webhookUrl: 'https://x.com' });
   });
 
-  it('round-trips rating config fields', () => {
+  it('maps rating config fields to API', () => {
     const api = mapKeys({ minLabel: 'Bad', maxLabel: 'Good' }, ratingConfigFieldsToApi);
     expect(api).toEqual({ min_label: 'Bad', max_label: 'Good' });
-
-    const sdk = mapKeys(api, ratingConfigFieldsFromApi);
-    expect(sdk).toEqual({ minLabel: 'Bad', maxLabel: 'Good' });
-  });
-});
-
-describe('computeExpiresAt', () => {
-  beforeEach(() => {
-    vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
-  });
-
-  afterEach(() => {
-    vi.useRealTimers();
-  });
-
-  it('adds seconds to current time', () => {
-    const result = computeExpiresAt(3600);
-    expect(result).toBe('2026-01-01T01:00:00.000Z');
-  });
-
-  it('handles large durations', () => {
-    const result = computeExpiresAt(172800); // 2 days
-    expect(result).toBe('2026-01-03T00:00:00.000Z');
   });
 });

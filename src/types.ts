@@ -21,14 +21,23 @@ export interface CreateQuestionOptions {
   type: QuestionType;
   options?: string[];
   ratingConfig?: RatingConfig;
-  /** Seconds until expiry — mutually exclusive with `expiresAt` */
-  expiresIn?: number;
-  /** ISO date string — mutually exclusive with `expiresIn` */
-  expiresAt?: string;
+  /** Expiry timestamp — ISO 8601 string or Date object */
+  expiresAt: Date | string;
   maxResponses?: number;
   webhookUrl?: string;
   webhookTrigger?: WebhookTrigger;
   metadata?: Record<string, string>;
+  themeColor?: string;
+  themeMode?: 'light' | 'dark';
+  hideBranding?: boolean;
+  welcomeMessage?: string;
+  thankYouMessage?: string;
+}
+
+/** Options for updating a question (all fields optional) */
+export interface UpdateQuestionOptions {
+  webhookUrl?: string;
+  webhookTrigger?: WebhookTrigger;
   themeColor?: string;
   themeMode?: 'light' | 'dark';
   hideBranding?: boolean;
@@ -41,8 +50,7 @@ export interface Question {
   id: string;
   question: string;
   type: QuestionType;
-  options: string[] | null;
-  ratingConfig?: RatingConfig;
+  options: string[] | RatingConfig | null;
   status: QuestionStatus;
   expiresAt: string;
   maxResponses: number | null;
@@ -83,7 +91,6 @@ export interface PaginatedList<T> {
 /** A single response item */
 export interface ResponseItem {
   id: string;
-  questionId: string;
   value: unknown;
   respondent: string | null;
   createdAt: string;

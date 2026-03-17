@@ -1,6 +1,7 @@
 import type { Fdbck } from '../client.js';
 import type {
   CreateQuestionOptions,
+  UpdateQuestionOptions,
   ListQuestionsOptions,
   ListResponsesOptions,
   ListWebhooksOptions,
@@ -11,12 +12,10 @@ import type {
   WebhookDelivery,
 } from '../types.js';
 import {
-  computeExpiresAt,
   mapKeys,
   paginationFieldsFromApi,
   questionFieldsFromApi,
   questionFieldsToApi,
-  ratingConfigFieldsFromApi,
   ratingConfigFieldsToApi,
   responseFieldsFromApi,
   resultsFieldsFromApi,
@@ -24,14 +23,7 @@ import {
 } from '../utils.js';
 
 function mapQuestionFromApi(raw: Record<string, unknown>): Question {
-  const mapped = mapKeys(raw, questionFieldsFromApi) as Record<string, unknown>;
-  if (mapped.ratingConfig && typeof mapped.ratingConfig === 'object') {
-    mapped.ratingConfig = mapKeys(
-      mapped.ratingConfig as Record<string, unknown>,
-      ratingConfigFieldsFromApi,
-    );
-  }
-  return mapped as unknown as Question;
+  return mapKeys(raw, questionFieldsFromApi) as unknown as Question;
 }
 
 function mapResponseFromApi(raw: Record<string, unknown>): ResponseItem {
@@ -51,19 +43,12 @@ export class QuestionsResource {
 
   /** Create a new question. */
   async create(opts: CreateQuestionOptions): Promise<Question> {
-    const { expiresIn, ratingConfig, ...rest } = opts;
-
-    if (expiresIn !== undefined && opts.expiresAt !== undefined) {
-      throw new Error('Provide either expiresIn or expiresAt, not both');
-    }
-    if (expiresIn === undefined && opts.expiresAt === undefined) {
-      throw new Error('Either expiresIn or expiresAt is required');
-    }
+    const { ratingConfig, ...rest } = opts;
 
     const body: Record<string, unknown> = { ...rest };
 
-    if (expiresIn !== undefined) {
-      body.expiresAt = computeExpiresAt(expiresIn);
+    if (body.expiresAt instanceof Date) {
+      body.expiresAt = body.expiresAt.toISOString();
     }
 
     if (ratingConfig) {
@@ -142,6 +127,15 @@ export class QuestionsResource {
       data,
       pagination,
     };
+  }
+
+  /** Update a collecting question's webhook config or theming. */
+  async update(id: string, opts: UpdateQuestionOptions): Promise<Question> {
+    const apiBody = mapKeys(opts as unknown as Record<string, unknown>, questionFieldsToApi);
+    const raw = await this.client.request<Record<string, unknown>>('PATCH', `/v1/questions/${id}`, {
+      body: apiBody,
+    });
+    return mapQuestionFromApi(raw);
   }
 
   /** Cancel (delete) a question. */

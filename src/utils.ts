@@ -45,20 +45,14 @@ export const questionFieldsFromApi: Record<string, string> = {
   updated_at: 'updatedAt',
 };
 
-/** snake_case → camelCase for rating_config subfields */
+/** camelCase → snake_case for rating_config subfields */
 export const ratingConfigFieldsToApi: Record<string, string> = {
   minLabel: 'min_label',
   maxLabel: 'max_label',
 };
 
-export const ratingConfigFieldsFromApi: Record<string, string> = {
-  min_label: 'minLabel',
-  max_label: 'maxLabel',
-};
-
 /** snake_case → camelCase for response items */
 export const responseFieldsFromApi: Record<string, string> = {
-  question_id: 'questionId',
   created_at: 'createdAt',
 };
 
@@ -102,9 +96,3 @@ export const resultsFieldsFromApi: Record<string, string> = {
   total_responses: 'totalResponses',
 };
 
-/**
- * Compute an ISO `expires_at` string from a duration in seconds.
- */
-export function computeExpiresAt(seconds: number): string {
-  return new Date(Date.now() + seconds * 1000).toISOString();
-}
